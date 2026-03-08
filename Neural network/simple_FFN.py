@@ -42,7 +42,7 @@ def fp(data, w, b):
 
 
 def bp(w, b, z, a, res):
-    l = len(train_y)
+    l = len(data)
     Loss = sum(sum((a[2] - res)**2))
     Loss_ = a[2] - res
     a2_ = Loss_*a[2]*(1-a[2])
@@ -51,18 +51,18 @@ def bp(w, b, z, a, res):
     w[2] = w[2] - lr*np.dot(a[1].T, a2_)/l
     w[1] = w[1] - lr*np.dot(a[0].T, a1_)/l
     w[0] = w[0] - lr*np.dot(data.T, a0_)/l
-    b[0] = b[0] - lr*a0_/l
-    b[1] = b[1] - lr*a1_/l
-    b[2] = b[2] - lr*a2_/l
+    b[0] = b[0] - lr*np.sum(a0_, axis=0, keepdims=True)/l
+    b[1] = b[1] - lr*np.sum(a1_, axis=0, keepdims=True)/l
+    b[2] = b[2] - lr*np.sum(a2_, axis=0, keepdims=True)/l
     return Loss
 
 
-for _ in range(1000):
+for _ in range(100000):
     z, a = [0]*3, [0]*3
     z[0], a[0] = fp(data, w[0], b[0])
     z[1], a[1] = fp(a[0], w[1], b[1])
     z[2], a[2] = fp(a[1], w[2], b[2])
 
     Loss = bp(w, b, z, a, res)
-    if _ % 100 == 0:
+    if _ % 10000 == 0:
         print(f"Loss: {Loss:.4f}")
