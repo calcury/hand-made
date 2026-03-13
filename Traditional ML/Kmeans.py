@@ -14,8 +14,9 @@ for _ in range(epochs):
     for i in range(n):
         d = [0]*k
         for j in range(k):
-            d[j] = ((data[i][0]-center[j][0])**2 +
-                    (data[i][1]-center[j][1])**2)
+            dx = (data[i][0]-center[j][0])
+            dy = (data[i][1]-center[j][1])
+            d[j] = dx**2+dy**2
         for j in range(k):
             if d[j] == min(d):
                 category[i] = j
