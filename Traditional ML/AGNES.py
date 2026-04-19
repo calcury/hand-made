@@ -19,8 +19,7 @@ def generate_dbscan_data(n_clusters=3, pts_per_cluster=50, noise_pts=20):
 
 
 data = generate_dbscan_data(n_clusters=3)
-cluster = [i for i in range(n)]
-k = 3
+k = 10
 
 distance_matrix = np.zeros((n, n))
 
@@ -34,26 +33,52 @@ max_distance = np.max(distance_matrix) + 1e-5
 mask_matrix = np.array([[(j >= i) for i in range(n)]for j in range(n)])
 mask_matrix = mask_matrix * max_distance
 distance_matrix += mask_matrix
+
+flat_idx = np.argsort(distance_matrix.ravel())
+row_idx, col_idx = np.unravel_index(flat_idx, distance_matrix.shape)
+sorted_positions = list(zip(row_idx, col_idx))
+
 num = n
 
 
-while num > k:
-    min_distance = np.min(distance_matrix)
-    for i in range(n):
-        for j in range(i+1, n):
-            if cluster[i] != cluster[j]:
-                if distance_matrix[i][j] <= min_distance:
-                    num -= 1
-                    distance_matrix[i][j] = max_distance
-                    index = cluster[j]
-                    for m in range(n):
-                        if cluster[m] == index:
-                            cluster[m] = cluster[i]
-            else:
-                distance_matrix[i][j] = max_distance
+class DSU:
+    def __init__(self, n):
+        self.parent = list(range(n))
+
+    def find(self, i):
+        if self.parent[i] != i:
+            self.parent[i] = self.find(self.parent[i])
+        return self.parent[i]
+
+    def union(self, i, j):
+        root_i = self.find(i)
+        root_j = self.find(j)
+
+        if root_i != root_j:
+            self.parent[root_i] = root_j
+            return True
+        return False
 
 
+dsu = DSU(n)
+num = n
+
+for pos in sorted_positions:
+    i, j = pos
+    if dsu.find(i) != dsu.find(j):
+        dsu.union(i, j)
+        num -= 1
+
+    if num <= k:
+        break
+
+cluster = [dsu.find(i) for i in range(n)]
 data = np.array(data)
+
+# Graph
+unique_roots = list(set(cluster))
+root_map = {root: i for i, root in enumerate(unique_roots)}
+cluster = [root_map[c] for c in cluster]
 
 colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']
 
